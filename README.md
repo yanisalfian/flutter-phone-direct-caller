@@ -1,6 +1,8 @@
 # flutter_phone_direct_caller
 
-Phone direct call from flutter ap
+Call number directly from flutter app.
+Currently support only Android.
+iOS support is work in process
 
 ## Getting Started
 
