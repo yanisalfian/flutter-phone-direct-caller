@@ -29,7 +29,7 @@ void main() {
 }
 
 _callNumber() async{
-  const number = '085921191121';
+  const number = '08592119XXXX';
   bool res = await FlutterPhoneDirectCaller.callNumber(number);
 }
 ```
