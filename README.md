@@ -14,7 +14,8 @@ flutter_phone_direct_caller:
 ## Example
 
 ```dart
-import import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 void main() {
   runApp(Scaffold(
@@ -27,9 +28,9 @@ void main() {
   ));
 }
 
-_callNumber() async {
+_callNumber() async{
   const number = '085921191121';
-  FlutterPhoneDirectCaller.callNumber(number);
+  bool res = await FlutterPhoneDirectCaller.callNumber(number);
 }
 ```
 
