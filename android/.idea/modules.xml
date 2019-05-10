@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/android.iml" filepath="$PROJECT_DIR$/.idea/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flutter_phone_direct_caller.iml" filepath="$PROJECT_DIR$/flutter_phone_direct_caller.iml" />
     </modules>
   </component>
 </project>
