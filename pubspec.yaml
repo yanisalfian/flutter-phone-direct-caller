@@ -1,8 +1,7 @@
 name: flutter_phone_direct_caller
-description: Phone direct call from flutter ap
-version: 0.0.1
-author:
-homepage:
+description: Simple flutter plugin to call a number directly, without going to phone dialer, from app
+version: 1.0.1
+homepage: https://github.com/yanisalfian
 
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
