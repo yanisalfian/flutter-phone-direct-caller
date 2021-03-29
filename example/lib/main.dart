@@ -27,26 +27,22 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: new Column(
-          children:<Widget>[
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _numberCtrl,
-                decoration: InputDecoration(
-                  labelText: "Phone Number"
-                ),
-                keyboardType: TextInputType.number,
-              ),
+        body: new Column(children: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _numberCtrl,
+              decoration: InputDecoration(labelText: "Phone Number"),
+              keyboardType: TextInputType.number,
             ),
-            RaisedButton(
-              child: Text("Test Call"),
-              onPressed: () async{
-                FlutterPhoneDirectCaller.callNumber(_numberCtrl.text);
-              },
-            )
-          ]
-        ),
+          ),
+          ElevatedButton(
+            child: Text("Test Call"),
+            onPressed: () async {
+              FlutterPhoneDirectCaller.callNumber(_numberCtrl.text);
+            },
+          )
+        ]),
       ),
     );
   }
