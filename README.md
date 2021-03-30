@@ -6,9 +6,7 @@ A simple plugin to call number directly from app, without going to phone dialer.
 
 Add dependency to pubspec.yaml file
 ```
-flutter_phone_direct_caller:
-  git:
-    url: https://github.com/yanisalfian/flutter-phone-direct-caller.git
+flutter_phone_direct_caller: ^2.0.0
 ```
 
 ### Android
