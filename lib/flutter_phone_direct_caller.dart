@@ -16,7 +16,6 @@ class FlutterPhoneDirectCaller {
   }
 
   static Future<bool?> directCall(String number) async{
-    print("test");
     final bool? result = await _channel.invokeMethod('callNumber',<String, Object>{
       'number': number
     });
