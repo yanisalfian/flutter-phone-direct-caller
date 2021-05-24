@@ -99,14 +99,14 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
 
   @Override
   public boolean onRequestPermissionsResult(int requestCode, String[] strings, int[] ints) {
-    for (int r : ints) {
-      if (r == PackageManager.PERMISSION_DENIED) {
-        flutterResult.success(false);
-        return false;
-      }
-    }
     switch (requestCode) {
       case CALL_REQ_CODE:
+         for (int r : ints) {
+          if (r == PackageManager.PERMISSION_DENIED) {
+            flutterResult.success(false);
+            return false;
+          }
+        }
         flutterResult.success(callNumber(this.number));
         break;
     }
