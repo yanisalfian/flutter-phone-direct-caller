@@ -25,6 +25,7 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
     public static final int PERMISSION_DENIED_ERROR = 20;
     public static final String CALL_PHONE = android.Manifest.permission.CALL_PHONE;
     private String number;
+    private Result flutterResult;
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
@@ -40,9 +41,8 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-    if (call.method.equals("getPlatformVersion")) {
-      result.success("Android " + android.os.Build.VERSION.RELEASE);
-    } else if(call.method.equals("callNumber")) {
+    flutterResult = result;
+    if(call.method.equals("callNumber")) {
       this.number = call.argument("number");
       Log.d("Caller","Message");
       this.number = this.number.replaceAll("#", "%23");
@@ -52,11 +52,7 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
       if(getPermissionStatus() != 1){
         requestsPermission();
       } else {
-        if (callNumber(this.number)) {
-          result.success(true);
-        } else {
-          result.success(false);
-        }
+        result.success(callNumber(this.number));
       }
     } else {
       result.notImplemented();
@@ -103,14 +99,15 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
 
   @Override
   public boolean onRequestPermissionsResult(int requestCode, String[] strings, int[] ints) {
-    for (int r : ints) {
-      if (r == PackageManager.PERMISSION_DENIED) {
-        return false;
-      }
-    }
     switch (requestCode) {
       case CALL_REQ_CODE:
-        callNumber(this.number);
+         for (int r : ints) {
+          if (r == PackageManager.PERMISSION_DENIED) {
+            flutterResult.success(false);
+            return false;
+          }
+        }
+        flutterResult.success(callNumber(this.number));
         break;
     }
     return true;
