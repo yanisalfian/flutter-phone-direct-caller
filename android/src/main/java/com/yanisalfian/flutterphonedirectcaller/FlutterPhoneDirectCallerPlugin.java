@@ -7,40 +7,79 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.telephony.TelephonyManager;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** FlutterPhoneDirectCallerPlugin */
-public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, PluginRegistry.RequestPermissionsResultListener {
-  private Registrar registrar;
-    public static final int CALL_REQ_CODE = 0;
-    public static final int PERMISSION_DENIED_ERROR = 20;
-    public static final String CALL_PHONE = android.Manifest.permission.CALL_PHONE;
-    private String number;
-    private Result flutterResult;
+public class FlutterPhoneDirectCallerPlugin implements FlutterPlugin, ActivityAware {
+  private FlutterPhoneDirectCallerHandler handler;
 
-  /** Plugin registration. */
-  public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_phone_direct_caller");
-    FlutterPhoneDirectCallerPlugin flutterPhoneDirectCallerPlugin = new FlutterPhoneDirectCallerPlugin(registrar);
-    channel.setMethodCallHandler(flutterPhoneDirectCallerPlugin);
-    registrar.addRequestPermissionsResultListener(flutterPhoneDirectCallerPlugin);
-  }
-
-  private FlutterPhoneDirectCallerPlugin(Registrar registrar){
-    this.registrar = registrar;
+  @Override
+  public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+    handler = new FlutterPhoneDirectCallerHandler(binding);
+    MethodChannel channel = new MethodChannel(
+            binding.getBinaryMessenger(), "flutter_phone_direct_caller"
+    );
+    channel.setMethodCallHandler(handler);
   }
 
   @Override
-  public void onMethodCall(MethodCall call, Result result) {
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+
+  }
+
+  @Override
+  public void onAttachedToActivity(@NonNull ActivityPluginBinding activityPluginBinding) {
+    handler.setActivityPluginBinding(activityPluginBinding);
+  }
+
+  @Override
+  public void onDetachedFromActivityForConfigChanges() {
+    
+  }
+
+  @Override
+  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+
+  }
+
+  @Override
+  public void onDetachedFromActivity() {
+
+  }
+}
+
+class FlutterPhoneDirectCallerHandler implements MethodCallHandler, PluginRegistry.RequestPermissionsResultListener {
+  public FlutterPlugin.FlutterPluginBinding binding;
+  public ActivityPluginBinding activityPluginBinding;
+
+  private static final int CALL_REQ_CODE = 0;
+  private static final String CALL_PHONE = android.Manifest.permission.CALL_PHONE;
+  private String number;
+  private Result flutterResult;
+
+  public FlutterPhoneDirectCallerHandler(FlutterPlugin.FlutterPluginBinding binding){
+    this.binding = binding;
+  }
+
+  public void setActivityPluginBinding(ActivityPluginBinding activityPluginBinding) {
+    this.activityPluginBinding = activityPluginBinding;
+    activityPluginBinding.addRequestPermissionsResultListener(this);
+  }
+
+  @Override
+  public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     flutterResult = result;
     if(call.method.equals("callNumber")) {
       this.number = call.argument("number");
@@ -59,15 +98,27 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
     }
   }
 
+  @Override
+  public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    if (requestCode == CALL_REQ_CODE) {
+      for (int r : grantResults) {
+        if (r == PackageManager.PERMISSION_DENIED) {
+          flutterResult.success(false);
+          return false;
+        }
+      }
+      flutterResult.success(callNumber(this.number));
+    }
+    return true;
+  }
+
   private void requestsPermission() {
-    Activity activity = registrar.activity();
-    ActivityCompat.requestPermissions(activity, new String[]{CALL_PHONE}, CALL_REQ_CODE );
+    ActivityCompat.requestPermissions(getActivity(), new String[]{CALL_PHONE}, CALL_REQ_CODE );
   }
 
   private int getPermissionStatus() {
-    Activity activity = registrar.activity();
-    if (ContextCompat.checkSelfPermission(registrar.activity(), CALL_PHONE) == PackageManager.PERMISSION_DENIED) {
-      if (!ActivityCompat.shouldShowRequestPermissionRationale(activity, CALL_PHONE)) {
+    if (ContextCompat.checkSelfPermission(getActivity(), CALL_PHONE) == PackageManager.PERMISSION_DENIED) {
+      if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), CALL_PHONE)) {
         return -1;
       } else {
         return 0;
@@ -78,13 +129,10 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
   }
 
   private boolean callNumber(String number){
-
     try{
       Intent intent = new Intent(isTelephonyEnabled() ? Intent.ACTION_CALL : Intent.ACTION_VIEW);
       intent.setData(Uri.parse(number));
-
-      registrar.activity().startActivity(intent);
-
+      getActivity().startActivity(intent);
       return true;
     } catch (Exception e){
       Log.d("Caller","error: " + e.getMessage());
@@ -93,23 +141,11 @@ public class FlutterPhoneDirectCallerPlugin implements MethodCallHandler, Plugin
   }
 
   private boolean isTelephonyEnabled() {
-    TelephonyManager tm = (TelephonyManager) registrar.activity().getSystemService(Context.TELEPHONY_SERVICE);
+    TelephonyManager tm = (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
     return tm != null && tm.getPhoneType() != TelephonyManager.PHONE_TYPE_NONE;
   }
 
-  @Override
-  public boolean onRequestPermissionsResult(int requestCode, String[] strings, int[] ints) {
-    switch (requestCode) {
-      case CALL_REQ_CODE:
-         for (int r : ints) {
-          if (r == PackageManager.PERMISSION_DENIED) {
-            flutterResult.success(false);
-            return false;
-          }
-        }
-        flutterResult.success(callNumber(this.number));
-        break;
-    }
-    return true;
+  private Activity getActivity() {
+    return activityPluginBinding.getActivity();
   }
 }
