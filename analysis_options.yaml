@@ -1,0 +1,8 @@
+include:
+  package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_interpolation_to_compose_strings: true
+    lines_longer_than_80_chars: true
+    require_trailing_commas: true
