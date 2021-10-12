@@ -52,7 +52,6 @@ public class FlutterPhoneDirectCallerPlugin implements FlutterPlugin, ActivityAw
     /**
      * Plugin registration. Android V1 embedding
      */
-    @Deprecated
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_phone_direct_caller");
         FlutterPhoneDirectCallerPlugin flutterPhoneDirectCallerPlugin = new FlutterPhoneDirectCallerPlugin();
