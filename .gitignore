@@ -79,3 +79,5 @@ node_modules
 
 pubspec.lock
 .fvm
+
+example/**/build
