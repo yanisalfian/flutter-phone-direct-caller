@@ -1,3 +1,6 @@
+## 2.1.1
+* Closes [#19](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/19) 
+
 ## 2.1.0
 * Closes [#16](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/16)
 * Closes [#12](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/12)
