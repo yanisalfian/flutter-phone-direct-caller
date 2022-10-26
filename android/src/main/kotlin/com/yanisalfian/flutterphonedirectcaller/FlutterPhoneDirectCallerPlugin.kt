@@ -75,14 +75,16 @@ internal class FlutterPhoneDirectCallerHandler :
         permissions: Array<String>,
         grantResults: IntArray
     ): Boolean {
-        if (requestCode == CALL_REQ_CODE) {
-            for (r in grantResults) {
-                if (r == PackageManager.PERMISSION_DENIED) {
-                    flutterResult!!.success(false)
-                    return false
+        number?.let {
+            if (requestCode == CALL_REQ_CODE) {
+                for (r in grantResults) {
+                    if (r == PackageManager.PERMISSION_DENIED) {
+                        flutterResult!!.success(false)
+                        return false
+                    }
                 }
+                flutterResult!!.success(callNumber(number))
             }
-            flutterResult!!.success(callNumber(number))
         }
         return true
     }
