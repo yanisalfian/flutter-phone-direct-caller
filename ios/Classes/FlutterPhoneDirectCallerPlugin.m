@@ -21,18 +21,39 @@
 }
 
 - (BOOL)directCall:(NSString*)number {
-    number = [number stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    //NSString *escapedPhoneNumber = [number stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+
+   // number = [number stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     if( ! [number hasPrefix:@"tel:"]){
         number =  [NSString stringWithFormat:@"tel:%@", number];
     }
-    if(![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:number]]) {
-        return NO;
-    } else if(![[UIApplication sharedApplication] openURL:[NSURL URLWithString:number]]) {
-        // missing phone number
+    NSURL *url = [NSURL URLWithString:number];
+
+    if (![[UIApplication sharedApplication] canOpenURL:url]) {
         return NO;
     } else {
+        if (@available(iOS 10.0, *)) {
+            [[UIApplication sharedApplication] openURL:url
+                                               options:@{}
+                                     completionHandler:^(BOOL success) {
+                                         if (!success) {
+                                             NSLog(@"Failed to open URL: %@", number);
+                                         }
+                                     }];
+        } else {
+            // Suppress the deprecation warning for older iOS versions
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            BOOL success = [[UIApplication sharedApplication] openURL:url];
+    #pragma clang diagnostic pop
+            if (!success) {
+                // missing phone number
+                return NO;
+            }
+        }
         return YES;
     }
 }
+
 
 @end
