@@ -21,39 +21,35 @@
 }
 
 - (BOOL)directCall:(NSString*)number {
-    //NSString *escapedPhoneNumber = [number stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
 
-   // number = [number stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    if( ! [number hasPrefix:@"tel:"]){
-        number =  [NSString stringWithFormat:@"tel:%@", number];
-    }
-    NSURL *url = [NSURL URLWithString:number];
-
-    if (![[UIApplication sharedApplication] canOpenURL:url]) {
-        return NO;
-    } else {
-        if (@available(iOS 10.0, *)) {
-            [[UIApplication sharedApplication] openURL:url
-                                               options:@{}
-                                     completionHandler:^(BOOL success) {
-                                         if (!success) {
-                                             NSLog(@"Failed to open URL: %@", number);
-                                         }
-                                     }];
-        } else {
-            // Suppress the deprecation warning for older iOS versions
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-            BOOL success = [[UIApplication sharedApplication] openURL:url];
-    #pragma clang diagnostic pop
-            if (!success) {
-                // missing phone number
-                return NO;
-            }
+    // Create a character set for the allowed characters
+        NSCharacterSet *allowedCharacterSet = [NSCharacterSet URLQueryAllowedCharacterSet];
+        // Encode the number string using the new method
+        number = [number stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
+        // Check if the number has the "tel:" prefix, if not add it
+        if (![number hasPrefix:@"tel:"]) {
+            number = [NSString stringWithFormat:@"tel:%@", number];
         }
-        return YES;
-    }
+    
+
+    NSURL *telURL = [NSURL URLWithString:number];
+        
+        // Check if the application can open the URL
+        if (![[UIApplication sharedApplication] canOpenURL:telURL]) {
+            return NO;
+        } else {
+            // Try to open the URL with options and a completion handler
+            [[UIApplication sharedApplication] openURL:telURL options:@{} completionHandler:^(BOOL success) {
+                if (!success) {
+                    // Handle the failure case
+                    NSLog(@"Failed to open URL: %@", telURL);
+                }
+            }];
+            
+            return YES;
+        };
 }
+
 
 
 @end
