@@ -25,6 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace "com.yanisalfian.flutterphonedirectcaller"
     compileSdk 34
     ndkVersion "25.1.8937393"
 
@@ -42,7 +43,6 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.yanisalfian.flutterphonedirectcaller"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 21
