@@ -26,11 +26,28 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace "com.yanisalfian.flutterphonedirectcaller"
-    compileSdkVersion 31
+    compileSdk 34
+    ndkVersion "25.1.8937393"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 31
+        applicationId "com.yanisalfian.flutterphonedirectcaller"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
+        minSdkVersion 21
+        targetSdkVersion 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 }
