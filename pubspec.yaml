@@ -5,19 +5,14 @@ homepage: https://github.com/yanisalfian
 repository: https://github.com/yanisalfian/flutter-phone-direct-caller
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
-  flutter: ">=2.0.0"
+  sdk: '>=3.2.4 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 dev_dependencies:
-  flutter_lints: 1.0.4
+  flutter_lints: ^5.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://www.dartlang.org/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
   plugin:
     platforms:
