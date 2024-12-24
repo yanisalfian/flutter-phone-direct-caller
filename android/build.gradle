@@ -2,7 +2,7 @@ group 'com.yanisalfian.flutterphonedirectcaller'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.5.31'
+    ext.kotlin_version = '1.6.21'
     repositories {
         google()
         mavenCentral()
@@ -25,12 +25,13 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion = 31
+    namespace = "com.yanisalfian.flutterphonedirectcaller"
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 31
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        minSdkVersion = 16
+        targetSdkVersion = 31
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 
