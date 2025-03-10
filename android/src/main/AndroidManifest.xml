@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.yanisalfian.flutterphonedirectcaller">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CALL_PHONE"/>
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 </manifest>
