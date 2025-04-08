@@ -21,18 +21,35 @@
 }
 
 - (BOOL)directCall:(NSString*)number {
-    number = [number stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    if( ! [number hasPrefix:@"tel:"]){
-        number =  [NSString stringWithFormat:@"tel:%@", number];
-    }
-    if(![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:number]]) {
-        return NO;
-    } else if(![[UIApplication sharedApplication] openURL:[NSURL URLWithString:number]]) {
-        // missing phone number
-        return NO;
-    } else {
-        return YES;
-    }
+
+    // Create a character set for the allowed characters
+        NSCharacterSet *allowedCharacterSet = [NSCharacterSet URLQueryAllowedCharacterSet];
+        // Encode the number string using the new method
+        number = [number stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
+        // Check if the number has the "tel:" prefix, if not add it
+        if (![number hasPrefix:@"tel:"]) {
+            number = [NSString stringWithFormat:@"tel:%@", number];
+        }
+    
+
+    NSURL *telURL = [NSURL URLWithString:number];
+        
+        // Check if the application can open the URL
+        if (![[UIApplication sharedApplication] canOpenURL:telURL]) {
+            return NO;
+        } else {
+            // Try to open the URL with options and a completion handler
+            [[UIApplication sharedApplication] openURL:telURL options:@{} completionHandler:^(BOOL success) {
+                if (!success) {
+                    // Handle the failure case
+                    NSLog(@"Failed to open URL: %@", telURL);
+                }
+            }];
+            
+            return YES;
+        };
 }
+
+
 
 @end
