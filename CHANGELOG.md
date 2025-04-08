@@ -1,3 +1,7 @@
+## 2.2.0
+* use Android namespace
+* Use the new `openURL` method on iOS
+
 ## 2.1.1
 * Closes [#19](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/19) 
 
