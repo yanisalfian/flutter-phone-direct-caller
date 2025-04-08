@@ -22,17 +22,23 @@
 
 - (BOOL)directCall:(NSString*)number {
     number = [number stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    if( ! [number hasPrefix:@"tel:"]){
-        number =  [NSString stringWithFormat:@"tel:%@", number];
+    if (![number hasPrefix:@"tel:"]) {
+        number = [NSString stringWithFormat:@"tel:%@", number];
     }
-    if(![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:number]]) {
+    
+    NSURL *url = [NSURL URLWithString:number];
+    if (![[UIApplication sharedApplication] canOpenURL:url]) {
         return NO;
-    } else if(![[UIApplication sharedApplication] openURL:[NSURL URLWithString:number]]) {
-        // missing phone number
-        return NO;
-    } else {
-        return YES;
     }
+    
+    // Use the new `openURL` method
+    [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
+        if (!success) {
+            NSLog(@"Failed to open URL: %@", number);
+        }
+    }];
+    
+    return YES;
 }
 
 @end
