@@ -25,19 +25,19 @@
     if (![number hasPrefix:@"tel:"]) {
         number = [NSString stringWithFormat:@"tel:%@", number];
     }
-    
+
     NSURL *url = [NSURL URLWithString:number];
     if (![[UIApplication sharedApplication] canOpenURL:url]) {
         return NO;
     }
-    
+
     // Use the new `openURL` method
     [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
         if (!success) {
             NSLog(@"Failed to open URL: %@", number);
         }
     }];
-    
+
     return YES;
 }
 
