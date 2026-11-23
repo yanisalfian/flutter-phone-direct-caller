@@ -80,4 +80,8 @@ node_modules
 pubspec.lock
 .fvm
 
+# Swift Package Manager
+.build/
+.swiftpm/
+
 example/**/build

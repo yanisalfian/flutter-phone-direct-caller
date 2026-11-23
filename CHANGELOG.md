@@ -1,19 +1,13 @@
+## 3.0.0
+
+* **iOS**: Migrated to Swift Package Manager (SPM) with Swift implementation and removed CocoaPods support. Minimum iOS deployment target is now 13.0.
+* **Android**: Migrated to built-in Kotlin (AGP 9+ compatible), updated `compileSdk` to 36 and Java/JVM target to 17, and fixed activity/permission lifecycle bugs.
+* Updated minimum supported SDK constraints to Flutter `>=3.44.0` and Dart `^3.12.0`.
+
+## 2.2.1
+
+* Add `namespace` to `android/build.gradle` for AGP 8 compatibility.
+
 ## 2.2.0
-* use Android namespace
-* Use the new `openURL` method on iOS
 
-## 2.1.1
-* Closes [#19](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/19) 
-
-## 2.1.0
-* Closes [#16](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/16)
-* Closes [#12](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/12)
-* Closes [#13](https://github.com/yanisalfian/flutter-phone-direct-caller/issues/13)
-
-## 2.0.0
-* null safety
-
-## 1.0.1
-
-* Initial release.
-* Migration to AndroidX
+* Update Android Gradle and Kotlin configuration.
