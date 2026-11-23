@@ -1,139 +1,186 @@
 package com.yanisalfian.flutterphonedirectcaller
 
 import android.Manifest
-import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.embedding.engine.plugins.activity.ActivityAware
-import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
-import io.flutter.plugin.common.MethodCall
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.content.Intent
-import android.net.Uri
-import java.lang.Exception
-import android.telephony.TelephonyManager
-import android.content.Context
-import android.app.Activity
-import android.util.Log
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 
-/** FlutterPhoneDirectCallerPlugin  */
+/** FlutterPhoneDirectCallerPlugin */
 class FlutterPhoneDirectCallerPlugin : FlutterPlugin, ActivityAware {
+    private var channel: MethodChannel? = null
     private var handler: FlutterPhoneDirectCallerHandler? = null
+
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         handler = FlutterPhoneDirectCallerHandler()
-        val channel = MethodChannel(
-            binding.binaryMessenger, "flutter_phone_direct_caller"
-        )
-        channel.setMethodCallHandler(handler)
+        channel = MethodChannel(binding.binaryMessenger, CHANNEL_NAME).apply {
+            setMethodCallHandler(handler)
+        }
     }
 
-    override fun onDetachedFromEngine(binding: FlutterPluginBinding) {}
-    override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
-        handler!!.setActivityPluginBinding(activityPluginBinding)
+    override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
+        channel?.setMethodCallHandler(null)
+        channel = null
+        handler?.detachActivity()
+        handler = null
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {}
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {}
-    override fun onDetachedFromActivity() {}
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        handler?.attachActivity(binding)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        handler?.detachActivity()
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        handler?.attachActivity(binding)
+    }
+
+    override fun onDetachedFromActivity() {
+        handler?.detachActivity()
+    }
+
+    companion object {
+        private const val CHANNEL_NAME = "flutter_phone_direct_caller"
+    }
 }
 
 internal class FlutterPhoneDirectCallerHandler :
     MethodCallHandler, RequestPermissionsResultListener {
+
     private var activityPluginBinding: ActivityPluginBinding? = null
-    private var number: String? = null
-    private var flutterResult: MethodChannel.Result? = null
-    fun setActivityPluginBinding(activityPluginBinding: ActivityPluginBinding) {
-        this.activityPluginBinding = activityPluginBinding
-        activityPluginBinding.addRequestPermissionsResultListener(this)
+    private var pendingNumber: String? = null
+    private var pendingResult: MethodChannel.Result? = null
+
+    fun attachActivity(binding: ActivityPluginBinding) {
+        detachActivity()
+        activityPluginBinding = binding
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    fun detachActivity() {
+        activityPluginBinding?.removeRequestPermissionsResultListener(this)
+        activityPluginBinding = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        flutterResult = result
-        if (call.method == "callNumber") {
-            number = call.argument("number")
-            Log.d("Caller", "Message")
-            number = number!!.replace("#".toRegex(), "%23")
-            if (!number!!.startsWith("tel:")) {
-                number = String.format("tel:%s", number)
-            }
-            if (permissionStatus != 1) {
-                requestsPermission()
-            } else {
-                result.success(callNumber(number))
-            }
-        } else {
+        if (call.method != "callNumber") {
             result.notImplemented()
+            return
+        }
+
+        val rawNumber = call.argument<String>("number")?.trim()
+        if (rawNumber.isNullOrEmpty()) {
+            result.success(false)
+            return
+        }
+
+        val currentActivity = activityPluginBinding?.activity
+        if (currentActivity == null) {
+            result.success(false)
+            return
+        }
+
+        val formattedNumber = formatTelUri(rawNumber)
+        if (hasCallPermission(currentActivity)) {
+            result.success(callNumber(currentActivity, formattedNumber))
+        } else {
+            pendingResult?.success(false)
+            pendingNumber = formattedNumber
+            pendingResult = result
+            ActivityCompat.requestPermissions(
+                currentActivity,
+                arrayOf(CALL_PHONE),
+                CALL_REQ_CODE
+            )
         }
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<String>,
+        permissions: Array<out String>,
         grantResults: IntArray
     ): Boolean {
-        number?.let {
-            if (requestCode == CALL_REQ_CODE) {
-                for (r in grantResults) {
-                    if (r == PackageManager.PERMISSION_DENIED) {
-                        flutterResult!!.success(false)
-                        return false
-                    }
-                }
-                flutterResult!!.success(callNumber(number))
-            }
+        if (requestCode != CALL_REQ_CODE) {
+            return false
+        }
+
+        val result = pendingResult
+        val number = pendingNumber
+        pendingResult = null
+        pendingNumber = null
+
+        if (result == null || number == null) {
+            return false
+        }
+
+        val granted = grantResults.isNotEmpty() &&
+            grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+
+        if (!granted) {
+            result.success(false)
+            return true
+        }
+
+        val currentActivity = activityPluginBinding?.activity
+        if (currentActivity == null) {
+            result.success(false)
+        } else {
+            result.success(callNumber(currentActivity, number))
         }
         return true
     }
 
-    private fun requestsPermission() {
-        ActivityCompat.requestPermissions(activity, arrayOf(CALL_PHONE), CALL_REQ_CODE)
+    private fun formatTelUri(rawNumber: String): String {
+        val encoded = rawNumber.replace("#", "%23")
+        return if (encoded.startsWith("tel:")) encoded else "tel:$encoded"
     }
 
-    private val permissionStatus: Int
-        get() = if (ContextCompat.checkSelfPermission(
-                activity,
-                CALL_PHONE
-            ) == PackageManager.PERMISSION_DENIED
-        ) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                    activity,
-                    CALL_PHONE
-                )
-            ) {
-                -1
-            } else {
-                0
-            }
-        } else {
-            1
-        }
+    private fun hasCallPermission(activity: Activity): Boolean {
+        return ContextCompat.checkSelfPermission(
+            activity,
+            CALL_PHONE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
 
-    private fun callNumber(number: String?): Boolean {
+    private fun callNumber(activity: Activity, number: String): Boolean {
         return try {
-            val intent = Intent(if (isTelephonyEnabled) Intent.ACTION_CALL else Intent.ACTION_VIEW)
-            intent.data = Uri.parse(number)
+            val action = if (isTelephonyEnabled(activity)) {
+                Intent.ACTION_CALL
+            } else {
+                Intent.ACTION_DIAL
+            }
+            val intent = Intent(action, Uri.parse(number))
             activity.startActivity(intent)
             true
         } catch (e: Exception) {
-            Log.d("Caller", "error: " + e.message)
+            Log.e(TAG, "Failed to initiate direct call", e)
             false
         }
     }
 
-    private val isTelephonyEnabled: Boolean
-        get() {
-            val tm = activity.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            return tm.phoneType != TelephonyManager.PHONE_TYPE_NONE
-        }
-    private val activity: Activity
-        get() = activityPluginBinding!!.activity
+    private fun isTelephonyEnabled(activity: Activity): Boolean {
+        val tm = activity.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+        return tm != null && tm.phoneType != TelephonyManager.PHONE_TYPE_NONE
+    }
 
     companion object {
-        private const val CALL_REQ_CODE = 0
+        private const val TAG = "DirectCaller"
+        private const val CALL_REQ_CODE = 1001
         private const val CALL_PHONE = Manifest.permission.CALL_PHONE
     }
 }

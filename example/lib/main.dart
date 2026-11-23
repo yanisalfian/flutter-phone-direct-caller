@@ -4,10 +4,10 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -17,6 +17,12 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _numberCtrl.text = "085921191121";
+  }
+
+  @override
+  void dispose() {
+    _numberCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -39,7 +45,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               child: const Text("Test Call"),
               onPressed: () async {
-                FlutterPhoneDirectCaller.callNumber(_numberCtrl.text);
+                await FlutterPhoneDirectCaller.callNumber(_numberCtrl.text);
               },
             ),
           ],
